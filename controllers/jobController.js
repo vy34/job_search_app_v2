@@ -1,6 +1,7 @@
 const { get } = require('mongoose');
 const Job = require('../models/Job');
 module.exports = {
+
     createJob: async (req, res) => {
         const newJob = new Job(req.body);
         try {
@@ -48,4 +49,44 @@ module.exports = {
             res.status(400).json({ message: err.message });
         }
     },
+
+    getAllJob : async (req, res) => {
+        const recent = req.query.new
+        try {
+            let jobs ;
+            if(recent){
+                jobs = await Job.find({}, {createdAt: 0, updatedAt: 0, __v: 0}).sort({createdAt: -1}).limit(2);
+            }else{
+                jobs = await Job.find({}, {createdAt: 0, updatedAt: 0, __v: 0});
+            }
+            res.status(200).json(jobs);
+        } catch (err) {
+            res.status(400).json({ message: err.message });
+        }
+    },
+
+    searchJob : async (req, res) => {
+        try {
+            const results = await Job.aggregate([
+            [
+                {
+                    $search: {
+                    index: "jobSearchApp",
+                    text: {
+                        query: req.params.key,
+                        path: {
+                        wildcard: "*"
+                        }
+                    }
+                    }
+                }
+            ]
+
+            ])
+            res.status(200).json(results);
+        }catch (err) {
+            res.status(400).json({ message: err.message });
+        }
+
+    }
 };
