@@ -69,7 +69,7 @@ module.exports = {
             isAdmin:user.isAdmin,
             isAgent:user.isAgent,
             uid: user.uid
-        }, process.env.JWT_SECRET, { expiresIn: '30d' });    
+        }, process.env.JWT_SECRET, { expiresIn: '21d' });    
 
         const {password,isAdmin, ...others} = user._doc;
         res.status(200).json({ ...others,userToken });
