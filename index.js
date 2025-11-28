@@ -5,6 +5,8 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
 const jobRoutes = require('./routes/job');
+const bookmarkRoutes = require('./routes/bookmark');
+const userRoutes = require('./routes/user');
 const bodyParser = require('body-parser')
 
 
@@ -26,8 +28,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.use('/api/jobs', jobRoutes);
-
 app.use('/api/', authRoutes);
+app.use('/api/bookmarks', bookmarkRoutes);
 
 app.listen(process.env.PORT || port, '0.0.0.0',() => {
   console.log(`Example app listening on port ${process.env.PORT || port}`);

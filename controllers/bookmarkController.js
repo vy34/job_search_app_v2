@@ -5,9 +5,8 @@ const { create } = require('../models/User');
 
 module.exports = {
     createBookmark: async (req, res) => {
-        const jobId = req.body;
+        const jobId = req.body.job;
         const userId = req.user.id;
-
         try {
             const job = await Job.findById(jobId);
 
@@ -25,7 +24,7 @@ module.exports = {
     },
 
     deleteBookmark: async (req, res) => {
-        const bookmarkId = req.params.bookmarkId;
+        const bookmarkId = req.params.id;
         try {
              await Bookmark.findByIdAndDelete(bookmarkId);
             return res.status(200).json({ status: 'success', message: 'Bookmark deleted successfully' });
@@ -33,7 +32,7 @@ module.exports = {
             return res.status(500).json({ message: error.message });
         }
     },
-    getAllBookmarks: async (req, res) => {
+    getAllBookmark: async (req, res) => {
         const userId = req.user.id;
         try {
             const bookmarks = await Bookmark.find({ userId: userId },{createdAt:0,updatedAt:0,__v:0})
@@ -43,13 +42,13 @@ module.exports = {
                 select:"-requirements -description  -createdAt -updatedAt -__v"
                 }
             )
-            res.status(200).json({ status: 'success', bookmarks: bookmarks });
+            res.status(200).json(bookmarks);
         }catch (error) {
             res.status(500).json({ message: error.message });
         }
     },
-    getBookmarks: async (req, res) => {
-        const jobId = req.params.jobId;
+    getBookmark: async (req, res) => {
+        const jobId = req.params.id;
         const userId = req.user.id;
         try{
             const bookmarks = await Bookmark.findOne({userId:userId,job:jobId})

@@ -34,7 +34,6 @@ module.exports = {
                     emailVerified: false,
                     disabled: false
                 })
-                console.log(userResponse.uid);
 
                 const newUser = await new User({
                     uid: userResponse.uid,
@@ -54,7 +53,7 @@ module.exports = {
     }},
     loginUser: async (req, res) => {
        try{
-        const user = await User.findOne({email: req.body.email},{createdAt: 0, updatedAt: 0, __v: 0,skills: 0,email: 0});
+        const user = await User.findOne({email: req.body.email},{createdAt: 0, updatedAt: 0, __v: 0,skills: 0});
         if(!user){
             return res.status(401).json({ message: 'User not found' });
         }
@@ -69,7 +68,7 @@ module.exports = {
             isAdmin:user.isAdmin,
             isAgent:user.isAgent,
             uid: user.uid
-        }, process.env.JWT_SECRET, { expiresIn: '21d' });    
+        }, process.env.JWT_SECRET, { expiresIn: '21d' });
 
         const {password,isAdmin, ...others} = user._doc;
         res.status(200).json({ ...others,userToken });
