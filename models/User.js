@@ -10,7 +10,7 @@ const UserSchema = new mongoose.Schema({
    updated: { type: Boolean, default: false },
    isAdmin: { type: Boolean, default: false },
    isAgent: { type: Boolean, default: false },
-   skills: { type: Boolean, required: false },
+   skills: { type: Boolean, required: false ,default: false },
    profile: { type: String, required: false ,default: "" }
 }, { timestamps: true });
 

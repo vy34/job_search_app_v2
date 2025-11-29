@@ -27,9 +27,16 @@ mongoose.connect(process.env.MONGODB_URL)
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
+// Log all requests
+// app.use((req, res, next) => {
+//   console.log(`[${req.method}] ${req.path}`);
+//   next();
+// });
+
 app.use('/api/jobs', jobRoutes);
 app.use('/api/', authRoutes);
 app.use('/api/bookmarks', bookmarkRoutes);
+app.use('/api/users', userRoutes);
 
 app.listen(process.env.PORT || port, '0.0.0.0',() => {
   console.log(`Example app listening on port ${process.env.PORT || port}`);

@@ -1,5 +1,6 @@
 const { get } = require('mongoose');
 const Job = require('../models/Job');
+const { getAgent } = require('./userController');
 module.exports = {
 
     createJob: async (req, res) => {
@@ -88,5 +89,15 @@ module.exports = {
             res.status(400).json({ message: err.message });
         }
 
-    }
+    },
+
+    getAgentJobs : async (req, res) => {
+        const uid = req.params.uid;
+        try {
+            const getAgentJobs = await Job.find({agentUid:uid},{createdAt: 0, updatedAt: 0, __v: 0}).sort({createdAt: -1});
+            res.status(200).json(getAgentJobs);
+        } catch (err) {
+            res.status(400).json({ message: err.message });
+        }   
+    },
 };
