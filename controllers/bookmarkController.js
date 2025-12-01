@@ -1,23 +1,34 @@
-const { get } = require('mongoose');
-const Bookmark = require('../models/Bookmark');
-const Job = require('../models/Job');
-const { create } = require('../models/User');
-
 module.exports = {
     createBookmark: async (req, res) => {
         const jobId = req.body.job;
         const userId = req.user.id;
         try {
-            const job = await Job.findById(jobId);
+            // Check if job exists
+            const { data: job, error: jobError } = await global.supabaseAdmin
+                .from('jobs')
+                .select('id')
+                .eq('id', jobId)
+                .single();
 
-            if (!job) {
+            if (jobError || !job) {
                 return res.status(404).json({ message: 'Job not found' });
             }
 
-            const newBookmark = new Bookmark({ job: jobId, userId: userId });
-            const savedBookmark = await newBookmark.save();
+            // Create bookmark
+            const { data: newBookmark, error } = await global.supabaseAdmin
+                .from('bookmarks')
+                .insert({
+                    job_id: jobId,
+                    user_id: userId
+                })
+                .select();
 
-            return res.status(201).json({ status: 'success', bookmarkId: savedBookmark._id });
+            if (error) throw error;
+
+            return res.status(201).json({ 
+                status: 'success', 
+                bookmarkId: newBookmark[0].id 
+            });
         } catch (error) {
             return res.status(500).json({ message: error.message })
         }
@@ -26,38 +37,64 @@ module.exports = {
     deleteBookmark: async (req, res) => {
         const bookmarkId = req.params.id;
         try {
-             await Bookmark.findByIdAndDelete(bookmarkId);
-            return res.status(200).json({ status: 'success', message: 'Bookmark deleted successfully' });
+            const { error } = await global.supabaseAdmin
+                .from('bookmarks')
+                .delete()
+                .eq('id', bookmarkId);
+
+            if (error) throw error;
+
+            return res.status(200).json({ 
+                status: 'success', 
+                message: 'Bookmark deleted successfully' 
+            });
         } catch (error) {
             return res.status(500).json({ message: error.message });
         }
     },
+
     getAllBookmark: async (req, res) => {
         const userId = req.user.id;
         try {
-            const bookmarks = await Bookmark.find({ userId: userId },{createdAt:0,updatedAt:0,__v:0})
-            .populate(
-                {
-                path:'job',
-                select:"-requirements -description  -createdAt -updatedAt -__v"
-                }
-            )
-            res.status(200).json(bookmarks);
-        }catch (error) {
+            const { data: bookmarks, error } = await global.supabaseAdmin
+                .from('bookmarks')
+                .select(`
+                    id,
+                    job_id,
+                    created_at,
+                    jobs (*)
+                `)
+                .eq('user_id', userId);
+
+            if (error) throw error;
+
+            res.status(200).json({ bookmarks: bookmarks });
+        } catch (error) {
             res.status(500).json({ message: error.message });
         }
     },
+
     getBookmark: async (req, res) => {
         const jobId = req.params.id;
         const userId = req.user.id;
-        try{
-            const bookmarks = await Bookmark.findOne({userId:userId,job:jobId})
-            if(!bookmarks){
-                return res.status(200).json({ status:false,bookmarkId:'none' });      
-            }
-            res.status(200).json({ status: true, bookmarkId: bookmarks._id });
+        try {
+            const { data: bookmarks, error } = await global.supabaseAdmin
+                .from('bookmarks')
+                .select('*')
+                .eq('user_id', userId)
+                .eq('job_id', jobId);
 
-        }catch (error){
+            if (error) throw error;
+
+            if (!bookmarks || bookmarks.length === 0) {
+                return res.status(200).json({ status: false, bookmarkId: 'none' });      
+            }
+
+            res.status(200).json({ 
+                status: true, 
+                bookmarkId: bookmarks[0].id 
+            });
+        } catch (error) {
             res.status(500).json({ message: error.message });
         }
     }

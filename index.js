@@ -2,30 +2,34 @@ const express = require('express');
 const app = express();
 const port = 5003;
 const dotenv = require('dotenv');
-const mongoose = require('mongoose');
+const { createClient } = require('@supabase/supabase-js');
 const authRoutes = require('./routes/auth');
 const jobRoutes = require('./routes/job');
 const bookmarkRoutes = require('./routes/bookmark');
 const userRoutes = require('./routes/user');
 const bodyParser = require('body-parser')
 
-
 dotenv.config();
 
-const admin = require('firebase-admin');
-const serviceAccount = require('./serviceAccountKey.json');
+// Initialize Supabase client
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_ANON_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
+if (!supabaseUrl || !supabaseKey || !supabaseServiceKey) {
+  console.error('Missing Supabase environment variables');
+  process.exit(1);
+}
 
-mongoose.connect(process.env.MONGODB_URL)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('Could not connect to MongoDB...', err));
+global.supabase = createClient(supabaseUrl, supabaseKey);
+global.supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
+console.log('Connected to Supabase');
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+// Increase body size limit to handle base64 encoded images (compressed)
+// Compressed images typically 2-5MB, safe limit is 20MB
+app.use(bodyParser.json({ limit: '20mb', strict: false }));
+app.use(bodyParser.urlencoded({ limit: '20mb', extended: true }));
 
 // Log all requests
 // app.use((req, res, next) => {
